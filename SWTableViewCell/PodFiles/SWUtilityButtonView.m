@@ -55,7 +55,7 @@
     return buttonWidth;
 }
 
-- (CGFloat)utilityButtonsWidth
+- (CGFloat)utilityViewWidth
 {
     return (_utilityButtons.count * _utilityButtonWidth);
 }

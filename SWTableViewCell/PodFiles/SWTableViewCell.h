@@ -15,6 +15,8 @@
 #import "SWConstants.h"
 
 @class SWTableViewCell;
+@class SWUtilityButtonView;
+@class SWUtilityView;
 
 typedef enum {
     kCellStateCenter,
@@ -40,6 +42,9 @@ typedef enum {
 @property (nonatomic, weak) id <SWTableViewCellDelegate> delegate;
 @property (nonatomic, strong) SWCellScrollView *cellScrollView;
 @property (nonatomic, weak) UITableView *containingTableView;
+
+@property (nonatomic, strong) IBOutlet SWUtilityView *scrollViewUtilityViewLeftCustom;
+@property (nonatomic, strong) IBOutlet SWUtilityView *scrollViewUtilityViewRightCustom;
 
 - (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier containingTableView:(UITableView *)containingTableView leftUtilityButtons:(NSArray *)leftUtilityButtons rightUtilityButtons:(NSArray *)rightUtilityButtons;
 

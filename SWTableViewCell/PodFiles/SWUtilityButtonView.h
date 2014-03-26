@@ -7,9 +7,11 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "SWUtilityView.h"
+
 @class SWTableViewCell;
 
-@interface SWUtilityButtonView : UIView
+@interface SWUtilityButtonView : SWUtilityView
 
 @property (nonatomic, strong) NSArray *utilityButtons;
 @property (nonatomic) CGFloat utilityButtonWidth;
@@ -22,6 +24,6 @@
 - (id)initWithFrame:(CGRect)frame utilityButtons:(NSArray *)utilityButtons parentCell:(SWTableViewCell *)parentCell utilityButtonSelector:(SEL)utilityButtonSelector;
 
 - (void)populateUtilityButtons;
-- (CGFloat)utilityButtonsWidth;
+- (CGFloat)utilityViewWidth;
 
 @end

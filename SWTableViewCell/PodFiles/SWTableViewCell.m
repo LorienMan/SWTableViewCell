@@ -9,6 +9,7 @@
 #import "SWTableViewCell.h"
 #import <UIKit/UIGestureRecognizerSubclass.h>
 #import "SWUtilityButtonView.h"
+#import "SWUtilityView.h"
 
 static NSString * const kTableViewCellContentView = @"UITableViewCellContentView";
 
@@ -22,8 +23,8 @@ static NSString * const kTableViewCellContentView = @"UITableViewCellContentView
     dispatch_once_t onceToken;
 }
 
-@property (nonatomic, strong) SWUtilityButtonView *scrollViewButtonViewLeft;
-@property (nonatomic, strong) SWUtilityButtonView *scrollViewButtonViewRight;
+@property (nonatomic, strong) SWUtilityView *scrollViewUtilityViewLeft;
+@property (nonatomic, strong) SWUtilityView *scrollViewUtilityViewRight;
 @property (nonatomic, weak) UIView *scrollViewContentView;
 @property (nonatomic) CGFloat height;
 
@@ -87,6 +88,11 @@ static NSString * const kTableViewCellContentView = @"UITableViewCellContentView
     }
     
     return self;
+}
+
+- (void)awakeFromNib {
+    [super awakeFromNib];
+    [self fillCustomUtilityViews];
 }
 
 - (void)initializer
@@ -153,19 +159,20 @@ static NSString * const kTableViewCellContentView = @"UITableViewCellContentView
     
     self.height = _containingTableView.rowHeight;
     [self.tapGestureRecognizer requireGestureRecognizerToFail:_containingTableView.panGestureRecognizer];
+
+    [self layoutSubviews];
 }
 
 - (void)layoutSubviews
 {
     [super layoutSubviews];
-    
     self.cellScrollView.frame = CGRectMake(0, 0, CGRectGetWidth(self.bounds), self.height);
     self.cellScrollView.contentSize = CGSizeMake(CGRectGetWidth(self.bounds) + [self utilityButtonsPadding], self.height);
     self.cellScrollView.contentOffset = CGPointMake([self leftUtilityButtonsWidth], 0);
-    self.scrollViewButtonViewLeft.frame = CGRectMake([self leftUtilityButtonsWidth], 0, 0, self.height);
-    self.scrollViewButtonViewLeft.layer.masksToBounds = YES;
-    self.scrollViewButtonViewRight.frame = CGRectMake(CGRectGetWidth(self.bounds), 0, 0, self.height);
-    self.scrollViewButtonViewRight.layer.masksToBounds = YES;
+    self.scrollViewUtilityViewLeft.frame = CGRectMake([self leftUtilityButtonsWidth], 0, 0, self.height);
+    self.scrollViewUtilityViewLeft.layer.masksToBounds = YES;
+    self.scrollViewUtilityViewRight.frame = CGRectMake(CGRectGetWidth(self.bounds), 0, 0, self.height);
+    self.scrollViewUtilityViewRight.layer.masksToBounds = YES;
     self.scrollViewContentView.frame = CGRectMake([self leftUtilityButtonsWidth], 0, CGRectGetWidth(self.bounds), self.height);
     self.cellScrollView.scrollEnabled = YES;
     self.tapGestureRecognizer.enabled = YES;
@@ -174,15 +181,46 @@ static NSString * const kTableViewCellContentView = @"UITableViewCellContentView
 
 #pragma mark - Properties
 
+- (void)fillCustomUtilityViews
+{
+    if (self.scrollViewUtilityViewLeftCustom) {
+        _leftUtilityButtons = nil;
+        SWUtilityView *departingLeftButtons = self.scrollViewUtilityViewLeft;
+        SWUtilityView *scrollViewUtilityViewLeft = self.scrollViewUtilityViewLeftCustom;
+
+        self.scrollViewUtilityViewLeft = scrollViewUtilityViewLeft;
+        [scrollViewUtilityViewLeft setFrame:CGRectMake([self leftUtilityButtonsWidth], 0, [self leftUtilityButtonsWidth], self.height)];
+
+        [self.cellScrollView insertSubview:scrollViewUtilityViewLeft belowSubview:self.scrollViewContentView];
+
+        [departingLeftButtons removeFromSuperview];
+    }
+
+    if (self.scrollViewUtilityViewRightCustom) {
+        _rightUtilityButtons = nil;
+        SWUtilityView *departingRightButtons = self.scrollViewUtilityViewRight;
+        SWUtilityView *scrollViewUtilityViewRight = self.scrollViewUtilityViewRightCustom;
+
+        self.scrollViewUtilityViewRight = scrollViewUtilityViewRight;
+        [scrollViewUtilityViewRight setFrame:CGRectMake([self rightUtilityButtonsWidth], 0, [self rightUtilityButtonsWidth], self.height)];
+
+        [self.cellScrollView insertSubview:scrollViewUtilityViewRight belowSubview:self.scrollViewContentView];
+
+        [departingRightButtons removeFromSuperview];
+    }
+
+    [self setNeedsLayout];
+}
+
 - (void)setLeftUtilityButtons:(NSArray *)leftUtilityButtons
 {
     _leftUtilityButtons = leftUtilityButtons;
-    SWUtilityButtonView *departingLeftButtons = self.scrollViewButtonViewLeft;
+    SWUtilityView *departingLeftButtons = self.scrollViewUtilityViewLeft;
     SWUtilityButtonView *scrollViewButtonViewLeft = [[SWUtilityButtonView alloc] initWithUtilityButtons:leftUtilityButtons
                                                                                              parentCell:self
                                                                                   utilityButtonSelector:@selector(leftUtilityButtonHandler:)];
     
-    self.scrollViewButtonViewLeft = scrollViewButtonViewLeft;
+    self.scrollViewUtilityViewLeft = scrollViewButtonViewLeft;
     [scrollViewButtonViewLeft setFrame:CGRectMake([self leftUtilityButtonsWidth], 0, [self leftUtilityButtonsWidth], self.height)];
     
     [self.cellScrollView insertSubview:scrollViewButtonViewLeft belowSubview:self.scrollViewContentView];
@@ -196,12 +234,12 @@ static NSString * const kTableViewCellContentView = @"UITableViewCellContentView
 - (void)setRightUtilityButtons:(NSArray *)rightUtilityButtons
 {
     _rightUtilityButtons = rightUtilityButtons;
-    SWUtilityButtonView *departingLeftButtons = self.scrollViewButtonViewRight;
+    SWUtilityView *departingLeftButtons = self.scrollViewUtilityViewRight;
     SWUtilityButtonView *scrollViewButtonViewRight = [[SWUtilityButtonView alloc] initWithUtilityButtons:rightUtilityButtons
                                                                                               parentCell:self
                                                                                    utilityButtonSelector:@selector(rightUtilityButtonHandler:)];
 
-    self.scrollViewButtonViewRight = scrollViewButtonViewRight;
+    self.scrollViewUtilityViewRight = scrollViewButtonViewRight;
     [scrollViewButtonViewRight setFrame:CGRectMake(CGRectGetWidth(self.bounds), 0, [self rightUtilityButtonsWidth], self.height)];
     
     [self.cellScrollView insertSubview:scrollViewButtonViewRight belowSubview:self.scrollViewContentView];
@@ -314,15 +352,15 @@ static NSString * const kTableViewCellContentView = @"UITableViewCellContentView
 - (void)setHighlighted:(BOOL)highlighted
 {
     [super setHighlighted:highlighted animated:NO];
-    self.scrollViewButtonViewLeft.hidden = highlighted;
-    self.scrollViewButtonViewRight.hidden = highlighted;
+    self.scrollViewUtilityViewLeft.hidden = highlighted;
+    self.scrollViewUtilityViewRight.hidden = highlighted;
 }
 
 - (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated
 {
     [super setHighlighted:highlighted animated:animated];
-    self.scrollViewButtonViewLeft.hidden = highlighted;
-    self.scrollViewButtonViewRight.hidden = highlighted;
+    self.scrollViewUtilityViewLeft.hidden = highlighted;
+    self.scrollViewUtilityViewRight.hidden = highlighted;
 }
 
 - (void)setSelected:(BOOL)selected
@@ -357,8 +395,8 @@ static NSString * const kTableViewCellContentView = @"UITableViewCellContentView
     _height = height;
     
     // update the utility button height
-    [self.scrollViewButtonViewLeft setHeight:height];
-    [self.scrollViewButtonViewRight setHeight:height];
+    [self.scrollViewUtilityViewLeft setHeight:height];
+    [self.scrollViewUtilityViewRight setHeight:height];
     
     [self layoutSubviews];
 }
@@ -408,12 +446,12 @@ static NSString * const kTableViewCellContentView = @"UITableViewCellContentView
 
 - (CGFloat)leftUtilityButtonsWidth
 {
-    return [self.scrollViewButtonViewLeft utilityButtonsWidth];
+    return [self.scrollViewUtilityViewLeft utilityViewWidth];
 }
 
 - (CGFloat)rightUtilityButtonsWidth
 {
-    return [self.scrollViewButtonViewRight utilityButtonsWidth] + additionalRightPadding;
+    return [self.scrollViewUtilityViewRight utilityViewWidth] + additionalRightPadding;
 }
 
 - (CGFloat)utilityButtonsPadding
@@ -423,7 +461,7 @@ static NSString * const kTableViewCellContentView = @"UITableViewCellContentView
 
 - (CGPoint)scrollViewContentOffset
 {
-    return CGPointMake([self.scrollViewButtonViewLeft utilityButtonsWidth], 0);
+    return CGPointMake([self.scrollViewUtilityViewLeft utilityViewWidth], 0);
 }
 
 - (void)setAppearanceWithBlock:(void (^)())appearanceBlock force:(BOOL)force
@@ -532,7 +570,7 @@ static NSString * const kTableViewCellContentView = @"UITableViewCellContentView
         case kCellStateLeft:
             if (velocity.x >= 0.5f)
             {
-                [self scrollToCenter:targetContentOffset];
+                //[self scrollToCenter:targetContentOffset];
             }
             else if (velocity.x <= -0.5f)
             {
@@ -555,7 +593,7 @@ static NSString * const kTableViewCellContentView = @"UITableViewCellContentView
             }
             else if (velocity.x <= -0.5f)
             {
-                [self scrollToCenter:targetContentOffset];
+                //[self scrollToCenter:targetContentOffset];
             }
             else
             {
@@ -591,11 +629,11 @@ static NSString * const kTableViewCellContentView = @"UITableViewCellContentView
             CGFloat scrollViewWidth = MIN(scrollView.contentOffset.x - [self leftUtilityButtonsWidth], [self rightUtilityButtonsWidth]);
             
             // Expose the right button view
-            self.scrollViewButtonViewRight.frame = CGRectMake(scrollView.contentOffset.x + (CGRectGetWidth(self.bounds) - scrollViewWidth), 0.0f, scrollViewWidth,self.height);
+            self.scrollViewUtilityViewRight.frame = CGRectMake(scrollView.contentOffset.x + (CGRectGetWidth(self.bounds) - scrollViewWidth), 0.0f, scrollViewWidth,self.height);
             
-            CGRect scrollViewBounds = self.scrollViewButtonViewRight.bounds;
+            CGRect scrollViewBounds = self.scrollViewUtilityViewRight.bounds;
             scrollViewBounds.origin.x = MAX([self rightUtilityButtonsWidth] - scrollViewWidth, [self rightUtilityButtonsWidth] - scrollView.contentOffset.x);
-            self.scrollViewButtonViewRight.bounds = scrollViewBounds;
+            self.scrollViewUtilityViewRight.bounds = scrollViewBounds;
         }
         else
         {
@@ -619,7 +657,7 @@ static NSString * const kTableViewCellContentView = @"UITableViewCellContentView
             }
             CGFloat scrollViewWidth = MIN(scrollView.contentOffset.x - [self leftUtilityButtonsWidth], [self leftUtilityButtonsWidth]);
             
-            self.scrollViewButtonViewLeft.frame = CGRectMake([self leftUtilityButtonsWidth], 0.0f, scrollViewWidth, self.height);
+            self.scrollViewUtilityViewLeft.frame = CGRectMake([self leftUtilityButtonsWidth], 0.0f, scrollViewWidth, self.height);
         }
         else
         {
